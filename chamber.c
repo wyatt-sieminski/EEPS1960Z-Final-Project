@@ -16,11 +16,10 @@ void chamber(void)
 {
     eruption_parameters *eruption_params = malloc(sizeof(eruption_parameters));
 
-    // initial conditions
+    // SET INITAL CONDITIONS HERE
     eruption_params->t = 0.0;
     eruption_params->V = 10.0e9;
     eruption_params->p = 1.32e8;
-    eruption_params->erupting = true;
 
     // t = 0 values for n, rho, and drho_dp
     eruption_params->n = MASS_FRACTION_H20 - SIEVERTS_CONSTANT * sqrt(eruption_params->p) * (1.0 - MASS_FRACTION_CRYSTAL);
@@ -35,50 +34,24 @@ void chamber(void)
 
     // open file for writing model results
     eruption_params->eruptions_ptr = fopen("eruptions.txt", "w");
-    fprintf(eruption_params->eruptions_ptr, "Time, Pressure, Volume, Density, Mass Fraction Gas Bubbles, Mass Erupted\n");
+    // fprintf(eruption_params->eruptions_ptr, "Time, Pressure, Volume, Density, Mass Fraction Gas Bubbles, Mass Erupted\n");
 
-    while (eruption_params->t < TIME_MAX)
-    {
-        if (eruption_params->erupting)
-        {
-            eruption(eruption_params);
-        }
-        else
-        {
-            dormant(eruption_params);
-        }
-    }
+    eruption(eruption_params);
 
     free(eruption_params);
     fclose(eruption_params->eruptions_ptr);
 }
 
-void forward_euler(eruption_parameters *e);
-
 void eruption(eruption_parameters *e)
 {
-    double eruption_time_scale = TIME_MAX;
-    double eruption_start_time = e->t;
-
-    while (e->t < eruption_start_time + eruption_time_scale)
+    while (e->t < TIME_MAX)
     {
         forward_euler(e);
 
-        log_values(e);
+        fprintf(e->eruptions_ptr, "%f, %f, %f, %f, %f, %f,\n", e->t, e->p, e->V, e->rho, e->n, e->Qo);
 
         e->t += TIME_STEP_ERUPTION;
     }
-}
-
-void dormant(eruption_parameters *e)
-{
-    printf("%f", e->t);
-    // TODO: implement
-}
-
-void log_values(eruption_parameters *e)
-{
-    fprintf(e->eruptions_ptr, "%f, %f, %f, %f, %f, %f\n", e->t, e->p, e->V, e->rho, e->n, e->Qo);
 }
 
 void forward_euler(eruption_parameters *e)
@@ -90,7 +63,7 @@ void forward_euler(eruption_parameters *e)
     e->Qo = (e->p - p_litho) * ((e->rho * SHAPE_FACTOR * pow(M_PI * pow(CONDUIT_RADIUS, 2.0), 2.0)) / (CONDUIT_HEIGHT * DYNAMIC_VISCOSITY));
 
     // calculate the new pressure
-    double new_p = e->p - ((TIME_STEP_ERUPTION * e->Qo) / (e->rho * e->V)) * ((1.0 / BETA_R) + ((1.0 / e->rho) * e->drho_dp));
+    double new_p = e->p - ((TIME_STEP_ERUPTION * e->Qo) / (e->rho * e->V)) / ((1.0 / BETA_R) + ((1.0 / e->rho) * e->drho_dp));
 
     // update the volume
     e->V += e->V*((new_p - e->p) / BETA_R);
