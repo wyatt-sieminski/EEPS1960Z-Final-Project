@@ -10,19 +10,19 @@
 #define SHAPE_FACTOR 0.1
 #define GRAVITY 9.81
 
-#define MASS_FRACTION_H20 0.1
+#define MASS_FRACTION_H20 0.02
 #define MASS_FRACTION_CRYSTAL 0.4
 
 #define CRYSTAL_DENSITY 2600.0
 #define MELT_DENSITY 2300.0
 #define HOST_ROCK_DENSITY 2500.0
 
-#define SIEVERTS_CONSTANT 4e-6
+#define SIEVERTS_CONSTANT (4.0*pow(10.0, -6))
 #define GAS_CONSTANT 462.0
-#define SILICIC_MAGMA_TEMPERATURE 800.0
+#define SILICIC_MAGMA_TEMPERATURE 1073.15
 
-#define BETA_R 10e10
-#define DYNAMIC_VISCOSITY 10e7
+#define BETA_R pow(10.0, 10.0)
+#define DYNAMIC_VISCOSITY pow(10.0, 7.0)
 
 struct eruption_parameters
 {
@@ -33,7 +33,7 @@ struct eruption_parameters
     double p;
     double n;
     double drho_dp;
-    bool erupting;
+    double V_erupted;
     FILE* eruptions_ptr;
 } typedef eruption_parameters;
 
