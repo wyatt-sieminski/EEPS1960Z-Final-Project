@@ -33,7 +33,6 @@ struct eruption_parameters
     double p;
     double n;
     double drho_dp;
-    double V_erupted;
     FILE* eruptions_ptr;
 } typedef eruption_parameters;
 

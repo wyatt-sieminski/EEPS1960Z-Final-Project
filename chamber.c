@@ -25,24 +25,29 @@ void chamber(void)
     // t = 0 values for n, rho, drho_dp, and Q0
     eruption_params->n = MASS_FRACTION_H20 - SIEVERTS_CONSTANT * sqrt(eruption_params->p) * (1.0 - MASS_FRACTION_CRYSTAL);
 
+    // ensure n does not go below 0
     if (eruption_params->n < 0.0)
     {
         eruption_params->n = 0.0;
     }
 
+    // t = 0 for rho
     eruption_params->rho = 1.0 / ((eruption_params->n / (eruption_params->p / (GAS_CONSTANT * SILICIC_MAGMA_TEMPERATURE))) + (1.0 - eruption_params->n) * ((MASS_FRACTION_CRYSTAL / CRYSTAL_DENSITY) + ((1.0 - MASS_FRACTION_CRYSTAL) / MELT_DENSITY)));
 
+    // creating parts of the drho_dp equation
     double alpha = (MASS_FRACTION_CRYSTAL / CRYSTAL_DENSITY) + ((1.0 - MASS_FRACTION_CRYSTAL) / MELT_DENSITY);
     double numerator = eruption_params->n + ((1 - eruption_params->n) * alpha * (eruption_params->p / (GAS_CONSTANT * SILICIC_MAGMA_TEMPERATURE))) - ((MASS_FRACTION_H20 - eruption_params->n) / 2.0) * (1.0 - ((alpha * eruption_params->p) / (GAS_CONSTANT * SILICIC_MAGMA_TEMPERATURE))) + (1.0 - eruption_params->n) * (alpha / (GAS_CONSTANT * SILICIC_MAGMA_TEMPERATURE));
     double denominator = GAS_CONSTANT * SILICIC_MAGMA_TEMPERATURE * pow(eruption_params->n + (1.0 - eruption_params->n) * alpha * (eruption_params->p / (GAS_CONSTANT * SILICIC_MAGMA_TEMPERATURE)), 2.0);
 
     eruption_params->drho_dp = numerator / denominator;
 
+    // calculations for Qo
     eruption_params->Qo = (eruption_params->p - p_litho) * ((eruption_params->rho * SHAPE_FACTOR * pow(M_PI * pow(CONDUIT_RADIUS, 2.0), 2.0)) / (CONDUIT_HEIGHT * DYNAMIC_VISCOSITY));
 
     // open file for writing model results
     eruption_params->eruptions_ptr = fopen("eruption_h20_testing.txt", "w");
  
+    // print t = 0 values
     fprintf(eruption_params->eruptions_ptr, "%f, %f, %f, %f, %f, %f,\n", eruption_params->t, eruption_params->p, eruption_params->V, eruption_params->rho, eruption_params->n, eruption_params->drho_dp);
 
     eruption(eruption_params);
@@ -95,8 +100,6 @@ void forward_euler(eruption_parameters *e)
 
     // update the drho_dp
     e->drho_dp = numerator / denominator;
-
-    printf("%f", e->drho_dp);
 
     e->p = new_p;
     e->V = new_V;
